@@ -4,7 +4,7 @@
 
 暂时需要socket.io、node-static模块，可以到[npmjs](http://www.npmjs.org)里找到并安装。
 
-socket.io是实现聊天功能的。
+socket.io是实现数据即时传送的。
 
 node-static是来实现返回静态页面的。由于没用expressjs所以，用了这个模块。
 
