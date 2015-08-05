@@ -1,4 +1,4 @@
-var userList = require('./user_list.plus.js');
+var userList = require('./user_list.m.js');
 var io = require('socket.io').listen(3000);
 var stc = require('node-static');
 
