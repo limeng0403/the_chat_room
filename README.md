@@ -26,3 +26,63 @@ node-static是来实现返回静态页面的。由于没用expressjs所以，用
 
 >这是用json来实现用户存储的模块。
 
+###服务监听(客户端)：
+
+***user_info***
+>当前登录用户信息服务，由于没有登录系统，用户名与ID都是由后台生成的，后台生成后给前台，通过此服务。
+
+格式：
+
+```
+{
+    userid: userId,
+    username: userName
+}
+```
+
+***system_msg***
+>系统级消息服务，处理系统发出的消息。
+
+格式：
+>其中的type见代码后说明
+
+```
+{
+    'type':'login',
+    'who':userName,
+    'msg':message,
+    'timestamp':timeStamp
+}
+```
+
+>type说明：login-登录；logon-退出；warning-警告；info-消息；error-错误；
+
+***client***
+>用户级消息服务，处理用户间发送的消息。
+
+格式：
+
+```
+{
+    from:'userName',
+    to:'userName',
+    msg:'message',
+    imgUrl:'image url'
+}
+```
+
+***client_user_list***
+>客户端用户列表服务，处理当前聊天室中所有用户列表。
+
+格式：
+
+```
+[
+    {
+        id:id,
+        username:userName,
+        lastaction:lastAction
+    },
+    ...
+]
+```

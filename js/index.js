@@ -7,6 +7,9 @@ var msg = '';
 var userId = '';
 var user = '';
 
+var msgListObj = document.getElementById('msgList');
+var $msgListobj = $(msgListObj);
+
 $(function () {
     $('#say').focus();
 
@@ -14,17 +17,74 @@ $(function () {
 
     socket.emit('login', '');
 
-    socket.on('user_info', function (data) {
-        console.log(data);
-
-        userId = data.userid;
-        document.cookie = 'userid=' + userId;
-        user = data.username;
-
-        $('#userName').text(user);
-    });
-
     socket.on('connect', function () {
+        socket.on('user_info', function (data) {
+            console.log(data);
+
+            userId = data.userid;
+            document.cookie = 'userid=' + userId;
+            user = data.username;
+
+            $('#userName').text(user);
+        });
+
+        socket.on('system_msg', function (data) {
+            var type = data.type;
+
+            if (!type) {
+                return false;
+            }
+
+            var who = data.who;
+            var whoArr = who.split(';');
+            var whoArrLen = whoArr.length;
+            var msg = data.msg;
+            var timestamp = data.timestamp;
+
+            if (who == 'all') {
+                who = '大家';
+            }
+
+            for (var i = 0; i < whoArrLen; i++) {
+                if (whoArr[i] == 'all') {
+                    whoArr[i] = '大家';
+                }
+            }
+
+            switch (type) {
+                case 'login':
+                    var html = '<p><span class="red1">登录动态：</span>';
+                    html += '<a href="javascript:void(0)" class="btn-link" onclick="showTo(\'' + who + '\')">' + who + '</a>';
+                    html += '进入聊天室。</p>';
+                    break;
+                case 'logon':
+                    var html = '<p><span class="red1">退出动态：</span>';
+                    html += '<a href="javascript:void(0)" class="btn-link">' + who + '</a>';
+                    html += '退出聊天室。</p>';
+                    break;
+                case 'warning':
+                    var html = '<p><span class="red2">警告消息：</span>';
+                    for (var i = 0; i < whoArrLen; i++) {
+                        html += '【<a href="javascript:void(0)" class="btn-link">' + whoArr[i] + '</a>】';
+                    }
+                    html += '注意。' +  msg + '</p>';
+                    break;
+                case 'info':
+                    var html = '<p><span class="red2">系统消息：</span>请';
+                    for (var i = 0; i < whoArrLen; i++) {
+                        html += '【<a href="javascript:void(0)" class="btn-link">' + whoArr[i] + '</a>】';
+                    }
+                    html += '注意。' + msg + '</p>';
+                    break;
+                case 'error':
+                    var html = '<p><span class="red2">系统错误：</span>';
+                    html += msg + '</p>';
+                    break;
+            }
+
+            $msgListobj.append(html);
+        });
+
         socket.on('client', function (data) {
             console.log(data);
 
@@ -32,16 +92,18 @@ $(function () {
                 return false;
             }
 
-            var obj = document.getElementById('msgList');
-            var $obj = $(obj);
+            var msgs = '<a href="javascript:void(0)" class="btn-link" onclick="showTo(\'' + data.from + '\')">' + data.from + '</a>';
+            if (data.to == 'all') {
+                msgs += '对<span class="red1">大家</span>';
+            } else {
+                msgs += '对<a href="javascript:void(0)" class="btn-link" onclick="showTo(\'' + data.to + '\')">' + data.to + '</a>';
+            }
 
-            var msgs = '<a href="javascript:void(0)" class="btn-link">' + data.from + '</a>';
-            msgs += '对<a href="javascript:void(0)" class="btn-link">' + data.to + '</a>';
             msgs += '说：' + data.msg;
-            $obj.append('<p>' + msgs + '</p>');
+            $msgListobj.append('<p>' + msgs + '</p>');
 
-            var scrollH = $obj[0].scrollHeight;
-            $obj.scrollTop(scrollH);
+            var scrollH = $msgListobj[0].scrollHeight;
+            $msgListobj.scrollTop(scrollH);
         });
 
         socket.on('client_user_list', function (data) {
@@ -59,7 +121,7 @@ $(function () {
                     var time = currTime - lastTime;
 
                     var html = '<p data-userid="' + data[i].userid + '">';
-                    html += '<a href="javascript:void(0)" onclick="showTo(\''+data[i].username+'\')">';
+                    html += '<a href="javascript:void(0)" onclick="showTo(\'' + data[i].username + '\')">';
                     html += data[i].username;
                     html += '</a>';
                     html += '</p>';
@@ -107,7 +169,7 @@ function sendMsg() {
     }
 
     if ($.trim(to) == '') {
-        to = '大家';
+        to = 'all';
     }
 
     socket.emit('server', {
@@ -120,7 +182,7 @@ function sendMsg() {
     $(oMsg).focus();
 }
 
-function showTo(userName){
+function showTo(userName) {
     $('#to').val(userName);
 }
 
@@ -130,3 +192,8 @@ window.onbeforeunload = function () {
         username: user
     });
 }
+
+setInterval(function () {
+    $('#say').val('现在时间是：' + new Date());
+    sendMsg();
+}, 12000);

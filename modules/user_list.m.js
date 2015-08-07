@@ -32,12 +32,15 @@ exports.addUserList = function (callback) {
 
 exports.removeUserList = function (userId, callback) {
     var len = userArr.length;
+    var newArr = [];
 
     for (var i = 0; i < len; i++) {
-        if (userArr[i].userid == userId) {
-            userArr.splice(i, 1);
+        if (userArr[i].userid != userId) {
+            newArr.push(userArr[i]);
         }
     }
+
+    userArr = newArr;
 
     callback(false, userArr);
 }
