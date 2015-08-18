@@ -6,6 +6,7 @@ var socket = '';
 var msg = '';
 var userId = '';
 var user = '';
+var toUser = '所有人';
 
 var msgListObj = document.getElementById('msgList');
 var $msgListobj = $(msgListObj);
@@ -42,12 +43,12 @@ $(function () {
             var timestamp = data.timestamp;
 
             if (who == 'all') {
-                who = '大家';
+                who = '所有人';
             }
 
             for (var i = 0; i < whoArrLen; i++) {
                 if (whoArr[i] == 'all') {
-                    whoArr[i] = '大家';
+                    whoArr[i] = '所有人';
                 }
             }
 
@@ -65,14 +66,14 @@ $(function () {
                 case 'warning':
                     var html = '<p><span class="red2">警告消息：</span>';
                     for (var i = 0; i < whoArrLen; i++) {
-                        html += '【<a href="javascript:void(0)" class="btn-link">' + whoArr[i] + '</a>】';
+                        html += '【<a href="javascript:void(0)" class="btn-link" onclick="showTo(\'' + whoArr[i] + '\')">' + whoArr[i] + '</a>】';
                     }
-                    html += '注意。' +  msg + '</p>';
+                    html += '注意。' + msg + '</p>';
                     break;
                 case 'info':
                     var html = '<p><span class="red2">系统消息：</span>请';
                     for (var i = 0; i < whoArrLen; i++) {
-                        html += '【<a href="javascript:void(0)" class="btn-link">' + whoArr[i] + '</a>】';
+                        html += '【<a href="javascript:void(0)" class="btn-link" onclick="showTo(\'' + whoArr[i] + '\')">' + whoArr[i] + '</a>】';
                     }
                     html += '注意。' + msg + '</p>';
                     break;
@@ -94,7 +95,7 @@ $(function () {
 
             var msgs = '<a href="javascript:void(0)" class="btn-link" onclick="showTo(\'' + data.from + '\')">' + data.from + '</a>';
             if (data.to == 'all') {
-                msgs += '对<span class="red1">大家</span>';
+                msgs += '对<span class="red1">所有人</span>';
             } else {
                 msgs += '对<a href="javascript:void(0)" class="btn-link" onclick="showTo(\'' + data.to + '\')">' + data.to + '</a>';
             }
@@ -112,7 +113,13 @@ $(function () {
             if (!data == '') {
                 var len = data.length;
 
-                $('#userList ul').html('');
+                var html = '<p data-userid="0">';
+                html += '<a href="javascript:void(0)" onclick="showTo(\'所有人\')">';
+                html += '所有人';
+                html += '</a>';
+                html += '</p>';
+
+                $('#userList ul').html(html);
 
                 for (var i = 0; i < len; i++) {
                     var currTime = parseInt(new Date().getTime() / 1000);
@@ -131,7 +138,10 @@ $(function () {
 
                 var timer = setInterval(function () {
                     if (userId) {
+                        $('p[data-userid=' + userId + '] img').remove();
+                        $('p[data-userid=' + userId + '] .glyphicon').remove();
                         $('p[data-userid=' + userId + '] a').before('<img src="imgs/me.png" height="26" />');
+                        $('p[data-userid=' + userId + ']').append('<a href="javascript:void(0)" class="glyphicon glyphicon-refresh" onclick="changeUserName()"></a>');
                         clearInterval(timer);
                     }
                 }, 100);
@@ -144,6 +154,8 @@ $(function () {
             $('#btnSendMsg').click();
         }
     });
+
+    $('#to').text(toUser);
 });
 
 function changeUserName() {
@@ -158,17 +170,19 @@ function sendMsg() {
         alert('请刷新页面，输入正确用户名。');
         return false;
     }
-    var oTo = document.getElementById('to');
-    var oMsg = document.getElementById('say');
-    var to = oTo.value;
-    var msg = oMsg.value;
+    var oTo = $('#to');
+    var oMsg = $('#say');
+    var to = toUser;
+    var msg = oMsg.val();
+
+    oTo.text(to);
 
     if (msg == '') {
         alert('is empty!');
         return false;
     }
 
-    if ($.trim(to) == '') {
+    if ($.trim(to) == '' || $.trim(to) == '所有人') {
         to = 'all';
     }
 
@@ -178,12 +192,13 @@ function sendMsg() {
         msg: msg
     });
 
-    oMsg.value = '';
-    $(oMsg).focus();
+    oMsg.val('');
+    oMsg.focus();
 }
 
 function showTo(userName) {
-    $('#to').val(userName);
+    toUser = userName;
+    $('#to').text(toUser);
 }
 
 window.onbeforeunload = function () {
